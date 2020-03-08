@@ -1,27 +1,42 @@
 class TasksController < ApplicationController
+  before_action :require_user_logged_in, only: [:show, :new, :create, :edit, :update, :destroy]
   before_action :set_task, only: [:show, :edit, :update, :destroy]
-  
+
   def index
-    @tasks = Task.order(id: :desc).page(params[:page]).per(5)
+#    @tasks = Task.order(id: :desc).page(params[:page]).per(5)
+    if logged_in?
+      @tasks = current_user.tasks.order(id: :desc).page(params[:page]).per(5)
+    end
   end
 
   def show
   end
 
   def new
-    @task = Task.new
+#    @task = Task.new
+    @task = current_user.tasks.build
   end
 
   def create
-    @task = Task.new(task_params)
-
+    @task = current_user.tasks.build(task_params)
     if @task.save
-      flash[:success] = 'Task が正常に投稿されました'
+      flash[:success] = 'Taskを投稿しました。'
       redirect_to @task
     else
-      flash.now[:danger] = 'Task が投稿されませんでした'
+#      @task = current_user.tasks.order(id: :desc).page(params[:page])
+      flash.now[:danger] = 'Taskの投稿に失敗しました。'
       render :new
     end
+
+#    @task = Task.new(task_params)
+#
+#    if @task.save
+#      flash[:success] = 'Task が正常に投稿されました'
+#      redirect_to @task
+#    else
+#      flash.now[:danger] = 'Task が投稿されませんでした'
+#      render :new
+#    end
   end
 
   def edit
@@ -45,11 +60,14 @@ class TasksController < ApplicationController
   end
 
  private
-  # Strong Parameter
   def set_task
-    @task = Task.find(params[:id])
+#    @task = Task.find(params[:id])
+    @task = current_user.tasks.find(params[:id])
+#    @task = current_user.tasks.order(id: :desc).page(params[:page])
+
   end
   
+  # Strong Parameter
   def task_params
     params.require(:task).permit(:content, :status)
   end
